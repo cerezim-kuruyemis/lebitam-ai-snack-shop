@@ -1,0 +1,102 @@
+import React, { useState } from 'react';
+
+interface ConfigurationErrorProps {
+    missingKeys: string[];
+}
+
+const ConfigurationError: React.FC<ConfigurationErrorProps> = ({ missingKeys }) => {
+    const [url, setUrl] = useState('');
+    const [anonKey, setAnonKey] = useState('');
+    const [apiKey, setApiKey] = useState('');
+
+    const handleSave = () => {
+        // Only set the items if the user has typed something
+        if (url.trim()) sessionStorage.setItem('SUPABASE_URL', url.trim());
+        if (anonKey.trim()) sessionStorage.setItem('SUPABASE_ANON_KEY', anonKey.trim());
+        if (apiKey.trim()) sessionStorage.setItem('API_KEY', apiKey.trim());
+
+        // Only reload if at least one key was entered to avoid reload loops
+        if (url.trim() || anonKey.trim() || apiKey.trim()) {
+            window.location.reload();
+        }
+    };
+
+
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-red-50 p-4">
+            <div className="w-full max-w-2xl p-8 space-y-6 bg-white rounded-xl shadow-2xl border-2 border-red-200">
+                <div className="text-center">
+                    <svg className="mx-auto h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <h2 className="mt-4 text-2xl font-extrabold text-center text-red-800">Uygulama Yapılandırma Hatası</h2>
+                    <p className="mt-2 text-gray-600">
+                        Uygulamanın çalışabilmesi için bazı "gizli anahtarların" ayarlanması gerekiyor.
+                    </p>
+                </div>
+
+                <div className="bg-red-50 p-4 rounded-lg">
+                    <h3 className="font-bold text-red-700">Eksik Anahtarlar:</h3>
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                        {missingKeys.map(key => (
+                            <li key={key} className="text-red-900">
+                                <code className="bg-red-200 text-red-900 px-2 py-1 rounded text-sm font-mono">{key}</code>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 className="font-bold text-gray-800">Çözüm 1: Gizli Değişkenleri Ayarla (Önerilen)</h3>
+                    <ol className="list-decimal list-inside mt-2 space-y-2 text-gray-700">
+                        <li>
+                            Gerekli servislerden (Supabase ve Google AI Studio) API anahtarlarınızı alın.
+                        </li>
+                        <li>
+                            Bu geliştirme ortamında sol menüdeki **"Secrets"** (Gizli Değişkenler) sekmesine tıklayın.
+                        </li>
+                        <li>
+                           Yukarıda listelenen her bir eksik anahtar için doğru adı ve değeri girip kaydedin.
+                        </li>
+                        <li>
+                            Tüm anahtarları ekledikten sonra, değişikliklerin geçerli olması için uygulamayı yenileyin.
+                        </li>
+                    </ol>
+                </div>
+
+                 <div className="mt-6 pt-6 border-t border-red-200">
+                    <h3 className="font-bold text-gray-800">Çözüm 2: Manuel Olarak Girin (Geçici)</h3>
+                    <p className="text-sm text-gray-600 mt-2">
+                        Eğer "Secrets" bölümü çalışmıyorsa, anahtarları geçici olarak buraya girebilirsiniz.
+                        <strong className="text-red-700"> Bu bilgiler sadece bu tarayıcı oturumu için saklanacaktır ve güvenli değildir.</strong>
+                    </p>
+                    <div className="space-y-4 mt-4">
+                        {missingKeys.includes('SUPABASE_URL') && (
+                            <div>
+                                <label htmlFor="supabase_url" className="text-sm font-medium text-gray-700">SUPABASE_URL</label>
+                                <input id="supabase_url" type="text" value={url} onChange={e => setUrl(e.target.value)} className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500" placeholder="https://proje-id.supabase.co"/>
+                            </div>
+                        )}
+                        {missingKeys.includes('SUPABASE_ANON_KEY') && (
+                            <div>
+                                <label htmlFor="supabase_anon_key" className="text-sm font-medium text-gray-700">SUPABASE_ANON_KEY</label>
+                                <input id="supabase_anon_key" type="password" value={anonKey} onChange={e => setAnonKey(e.target.value)} className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500" placeholder="Supabase Anon Public Key"/>
+                            </div>
+                        )}
+                        {missingKeys.includes('API_KEY') && (
+                            <div>
+                                <label htmlFor="api_key" className="text-sm font-medium text-gray-700">API_KEY (Gemini)</label>
+                                <input id="api_key" type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500" placeholder="Google AI Studio API Key"/>
+                            </div>
+                        )}
+                        <button onClick={handleSave} className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                            Kaydet ve Yeniden Dene
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ConfigurationError;
